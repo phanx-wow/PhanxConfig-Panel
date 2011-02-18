@@ -19,6 +19,8 @@ local panelBackdrop = {
 }
 
 function lib.CreatePanel(parent, width, height)
+	assert( type(parent) == "table" and parent.GetFrameType, "PhanxConfig-Panel: Parent is not a valid frame!" )
+
 	local frame = CreateFrame("Frame", nil, parent)
 	frame:SetFrameStrata(parent:GetFrameStrata())
 	frame:SetFrameLevel(parent:GetFrameLevel() + 1)
