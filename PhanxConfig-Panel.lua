@@ -2,18 +2,15 @@
 	PhanxConfig-Panel
 	Simple background panel widget generator. Requires LibStub.
 	https://github.com/Phanx/PhanxConfig-Panel
-
-	Copyright (c) 2009-2014 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright (c) 2009-2015 Phanx <addons@phanx.net>. All rights reserved.
 	Feel free to include copies of this file WITHOUT CHANGES inside World of
 	Warcraft addons that make use of it as a library, and feel free to use code
 	from this file in other projects as long as you DO NOT use my name or the
-	original name of this library anywhere in your project outside of an optional
-	credits line -- any modified versions must be renamed to avoid conflicts and
-	confusion. If you wish to do something else, or have questions about whether
-	you can do something, email me at the address listed above.
+	original name of this file anywhere in your project outside of an optional
+	credits line -- any modified versions must be renamed to avoid conflicts.
 ----------------------------------------------------------------------]]
 
-local MINOR_VERSION = 172
+local MINOR_VERSION = 20150112
 
 local lib, oldminor = LibStub:NewLibrary("PhanxConfig-Panel", MINOR_VERSION)
 if not lib then return end
@@ -24,21 +21,27 @@ local panelBackdrop = {
 	insets = { left = 5, right = 5, top = 5, bottom = 5 }
 }
 
-local function SetPoint(f, a, to, b, x, y)
-	if f.label:GetText() and strfind(a, "TOP") then
+local function SetPoint(self, a, to, b, x, y)
+	if self.labelText:GetText() and strmatch(a, "^TOP") then
 		if x and not y then
+			-- TOPLEFT, UIParent, 10, -10
 			a, to, b, x, y = a, to, a, b, x
 		elseif b and not x then
+			-- TOPLEFT, 10, -10
 			a, to, b, x, y = a, f:GetParent(), a, to, b
+		elseif a and not to then
+			-- TOPLEFT
+			a, to, b, x, y = a, f:GetParent(), a, 0, 0
 		end
-		y = y - f.label:GetHeight()
+		y = y - self.labelText:GetHeight()
 	end
-	f.__SetPoint(f, a, to, b, x, y)
+	self:orig_SetPoint(a, to, b, x, y)
 end
 
-local function SetLabel(f, labelText)
-	local prev = f.label:GetText()
-	f.label:SetText(labelText)
+local function SetText(fs, text)
+	local f = fs:GetParent()
+	local prev = fs:GetText()
+	fs:RealSetText(text)
 	if (not not prev) ~= (not not labelText) then
 		for i = 1, f:GetNumPoints() do
 			f:SetPoint(f:GetPoint(i))
@@ -61,14 +64,16 @@ function lib:New(parent, labelText, width, height)
 	label:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 4, 0)
 	label:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, 0)
 	label:SetJustifyH("LEFT")
-	frame.label = label
+	frame.labelText = label
 
-	frame.__SetPoint = frame.SetPoint
+	labelText:SetText(labelText)
+
+	labelText.RealSetText = labelText.SetText
+	labelText.SetText = SetText
+
+	frame.orig_SetPoint = frame.SetPoint
 	frame.SetPoint = SetPoint
 
-	frame.SetLabel = SetLabel
-
-	label:SetText(labelText)
 	if width and height then
 		frame:SetSize(width, height)
 	end
