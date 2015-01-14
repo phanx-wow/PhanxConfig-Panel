@@ -41,7 +41,7 @@ end
 local function SetText(fs, text)
 	local f = fs:GetParent()
 	local prev = fs:GetText()
-	fs:RealSetText(text)
+	fs:orig_SetText(text)
 	if (not not prev) ~= (not not labelText) then
 		for i = 1, f:GetNumPoints() do
 			f:SetPoint(f:GetPoint(i))
@@ -60,19 +60,20 @@ function lib:New(parent, labelText, width, height)
 	frame:SetBackdropColor(0.06, 0.06, 0.06, 0.4)
 	frame:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
 
-	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	label:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 4, 0)
-	label:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, 0)
-	label:SetJustifyH("LEFT")
-	frame.labelText = label
+	if labelText ~= false then
+		local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		label:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 4, 0)
+		label:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, 0)
+		label:SetJustifyH("LEFT")
+		frame.labelText = label
 
-	labelText:SetText(labelText)
+		label:SetText(labelText)
+		label.orig_SetText = label.SetText
+		label.SetText = SetText
 
-	labelText.RealSetText = labelText.SetText
-	labelText.SetText = SetText
-
-	frame.orig_SetPoint = frame.SetPoint
-	frame.SetPoint = SetPoint
+		frame.orig_SetPoint = frame.SetPoint
+		frame.SetPoint = SetPoint
+	end
 
 	if width and height then
 		frame:SetSize(width, height)
